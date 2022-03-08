@@ -30,28 +30,45 @@ void drawRect() {
     glEnd();
 }
 
+struct rectangularPrism
+{
+    rectangularPrism(float px, float py, float pz, float sx, float sy, float sz)
+    {
+        float x = sx + px;
+        float nx = -sx + px;
+        float y = sy + py;
+        float ny = -sy + py;
+        float z = sz + pz;
+        float nz = -sz + pz;
+        vc[0]= vc[3]= vc[6]= vc[9] = x; 
+        vc[1]= vc[4]= vc[13]= vc[16] = y; 
+        vc[2]= vc[11]= vc[14]= vc[23] = z; 
+        vc[12]= vc[15]= vc[18]= vc[21] = nx;
+        vc[7]= vc[10]= vc[19]= vc[22] = ny;
+        vc[5]= vc[8]= vc[17]= vc[20] = nz;
 
-// arrays for drawing rectangular prism
-/*int edgeElementArray[48] = {
-        0,1,  1,5,  5,4,  4,0,    // edges of the top face
-        7,3,  3,2,  2,6,  6,7,    // edges of the bottom face
-        1,2,  0,3,  4,7,  5,6, }; // edges connecting top face to bottom face*/
+    }
+    float vc[24];/* = {x,y,z,   x,y,nz,   x,ny,nz,   x,ny,z,
+                         nx,y,z,  nx,y,nz,  nx,ny,nz,  nx,ny,z };*/
+};
 
-float vertexCoords[48] = {  // Coordinates for the vertices of a cube.
-           /*0*/4,2,2, /*1*/4,2,-2, /*2*/4,-2,-2, /*3*/4,-2,2,
-           /*4*/-2,2,2, /*5*/-2,2,-2, /*6*/-2,-2,-2, /*7*/-2,-2,2,};
+rectangularPrism rectCent(0, 0, -5, 5, 5, 0.3);
+rectangularPrism rectLeft(-6, 0, -4, 1, 5, 1.3);
+rectangularPrism rectTop(0, 6, -4, 7, 1, 1.3);
+rectangularPrism rectRight(6, 0, -4, 1, 5, 1.3);
+rectangularPrism rectBot(0, -6, -4, 7, 1, 1.3);
+rectangularPrism rectPic(0, 0, -4.7, 4, 4, 0.5);
 
-/*float vertexColors[24] = {  // An RGB color value for each vertex
-           1,0,0,   1,0,0,   1,0,0,   1,0,0,
-           1,0,0,   1,0,0,   1,0,0,   1,0,0, };*/
 
-int elementArray[48] = {  // Vertex number for the six faces.
+
+
+int elementArray[24] = {  // Vertex number for the six faces.
           0,1,2,3, 0,3,7,4, 0,4,5,1,
-          6,2,1,5, 6,5,4,7, 6,7,3,2, };
+          6,2,1,5, 6,5,4,7, 6,7,3,2 };
 
 // Not currently working -------
 
-void drawRectangularPrism() {
+void drawRectangularPrism(rectangularPrism rect) {
 
   /*  glMatrixMode(GL_PROJECTION);
     glOrtho(-4, 4, -2, 2, -2, 2);  
@@ -64,14 +81,14 @@ void drawRectangularPrism() {
     //glLoadIdentity();             // Set up modelview transform, first cube.
     //glTranslatef(0.5, 0, 0);     // Move cube to left half of window.
     //glTranslatef(0, 0, 0);      // Move cube to right half of window.
-    glVertexPointer(3, GL_FLOAT, 0, vertexCoords);  // Set data type and location, first cube.
+    glVertexPointer(3, GL_FLOAT, 0, rect.vc);  // Set data type and location, first cube.
     //glColorPointer(3, GL_FLOAT, 0, vertexColors);
 
     glEnableClientState(GL_VERTEX_ARRAY);
     //glEnable(GL_NORMALIZE);
     //glEnableClientState(GL_COLOR_ARRAY);
     //glEnable(GL_COLOR_MATERIAL);
-    glDrawElements(GL_QUADS, 48, GL_UNSIGNED_INT, elementArray);
+    glDrawElements(GL_QUADS, 24, GL_UNSIGNED_INT, elementArray);
     
     //glDisableClientState(GL_COLOR_ARRAY);  // Don't use color array for the edges.
     //glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, edgeElementArray);  // Draw the edges!
@@ -311,8 +328,8 @@ void lights() {
         glDisable(GL_LIGHT0);
 
     if (light) {
-        float red[] = { 0.5, 0.5, 0.5, 1 };
-        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, red);
+        float light[] = { 0.5, 0.5, 0.5, 1 };
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, light);
         glEnable(GL_LIGHT1);
     }
     else {
@@ -322,7 +339,7 @@ void lights() {
 
     glPushMatrix();
     glRotated(-frameNumber, 0, 1, 0);
-    glTranslated(0, 2, -3);
+    glTranslated(0, 3, 1);
     glLightfv(GL_LIGHT1, GL_POSITION, zero);
     if(showLightModel)
         glutSolidSphere(0.5, 16, 8);
@@ -387,7 +404,14 @@ void display() {
   
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, amb);
     glPushMatrix();
-    drawRectangularPrism(); 
+    drawRectangularPrism(rectCent);
+    drawRectangularPrism(rectLeft);
+    drawRectangularPrism(rectRight);
+    drawRectangularPrism(rectTop);
+    drawRectangularPrism(rectBot);
+    drawRectangularPrism(rectPic);
+
+
     //glutSolidCube(8); // draws a cube - working
     //drawRect();
     glPopMatrix();
