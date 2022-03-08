@@ -220,13 +220,12 @@ void trackballMotionFunction(int x, int y) {
 
 const double PI = 3.141592654;
 
-int animating = 0;       // Is the animation running?
-int drawBase = 1;        // Should the base be drawn?
+int animating = 1;       // Is the animation running?
+int drawBase = 0;        // Should the base be drawn?
 int ambientLight = 1;    // Should global ambient light be on?
-int viewpointLight = 1;  // Should the viewpoint light be on?
+int viewpointLight = 0;  // Should the viewpoint light be on?
 int redLight = 1;        // Should the red light be on?
-int greenLight = 1;      // Should the green light be on?
-int blueLight = 1;       // Should the blue light be on?
+int showLightModel = 1;  // should the light model be shown
 
 int frameNumber = 0;  // Frame number for use in animation.
 
@@ -237,7 +236,7 @@ int width, height;  // Size of the display, set in reshape().
 //------------------- Drawing functions ----------------------------------------
 
 /*  Sets the positions of the colored lights and turns them on and off, depending on
- *  the state of the redLight, greenLight, and blueLight options.  Draws a small
+ *  the state of the redLight option.  Draws a small
  *  sphere at the location of each light.
  */
 void lights() {
@@ -252,7 +251,7 @@ void lights() {
         glDisable(GL_LIGHT0);
 
     if (redLight) {
-        float red[] = { 0.5, 0, 0, 1 };
+        float red[] = { 0.5, 0.5, 0.5, 1 };
         glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, red);
         glEnable(GL_LIGHT1);
     }
@@ -262,41 +261,10 @@ void lights() {
     }
     glPushMatrix();
     glRotated(-frameNumber, 0, 1, 0);
-    glTranslated(10, 7, 0);
+    glTranslated(0, 7, 8);
     glLightfv(GL_LIGHT1, GL_POSITION, zero);
-    glutSolidSphere(0.5, 16, 8);
-    glPopMatrix();
-
-    if (greenLight) {
-        float green[] = { 0, 0.5, 0, 1 };
-        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, green);
-        glEnable(GL_LIGHT2);
-    }
-    else {
-        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, zero);
-        glDisable(GL_LIGHT2);
-    }
-    glPushMatrix();
-    glRotated((frameNumber + 100) * 0.8743, 0, 1, 0);
-    glTranslated(9, 8, 0);
-    glLightfv(GL_LIGHT2, GL_POSITION, zero);
-    glutSolidSphere(0.5, 16, 8);
-    glPopMatrix();
-
-    if (blueLight) {
-        float blue[] = { 0, 0, 0.5, 1 };
-        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, blue);
-        glEnable(GL_LIGHT3);
-    }
-    else {
-        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, zero);
-        glDisable(GL_LIGHT3);
-    }
-    glPushMatrix();
-    glRotated((frameNumber - 100) * 1.3057, 0, 1, 0);
-    glTranslated(9.5, 7.5, 0);
-    glLightfv(GL_LIGHT3, GL_POSITION, zero);
-    glutSolidSphere(0.5, 16, 8);
+    if(showLightModel)
+        glutSolidSphere(0.5, 16, 8);
     glPopMatrix();
 
     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, zero); // Turn off emission color!
@@ -469,23 +437,11 @@ void initGL() {
     glLightfv(GL_LIGHT0, GL_DIFFUSE, dim);
     glLightfv(GL_LIGHT0, GL_SPECULAR, dim);
 
-    float red[] = { 0.5F, 0, 0, 1 };
-    float reda[] = { 0.1F, 0, 0, 1 };
+    float red[] = { 0.5F, 0.5F, 0.5F, 1 };
+    float reda[] = { 0.1F, 0.1F, 0.1F, 1 };
     glLightfv(GL_LIGHT1, GL_AMBIENT, reda);
     glLightfv(GL_LIGHT1, GL_DIFFUSE, red);
     glLightfv(GL_LIGHT1, GL_SPECULAR, red);
-
-    float gr[] = { 0, 0.5F, 0, 1 };
-    float gra[] = { 0, 0.1F, 0, 1 };
-    glLightfv(GL_LIGHT2, GL_AMBIENT, gra);
-    glLightfv(GL_LIGHT2, GL_DIFFUSE, gr);
-    glLightfv(GL_LIGHT2, GL_SPECULAR, gr);
-
-    float bl[] = { 0, 0, 0.5F, 1 };
-    float bla[] = { 0, 0, 0.1F, 1 };
-    glLightfv(GL_LIGHT3, GL_AMBIENT, bla);
-    glLightfv(GL_LIGHT3, GL_DIFFUSE, bl);
-    glLightfv(GL_LIGHT3, GL_SPECULAR, bl);
 }
 
 
@@ -519,8 +475,6 @@ void charTyped(unsigned char ch, int x, int y) {
     case 'm': case 'M': ambientLight = 1 - ambientLight; break;
     case 'v': case 'V': viewpointLight = 1 - viewpointLight; break;
     case 'r': case 'R': redLight = 1 - redLight; break;
-    case 'g': case 'G': greenLight = 1 - greenLight; break;
-    case 'b': case 'B': blueLight = 1 - blueLight; break;
     case 27: exit(0);
     }
     glutPostRedisplay();
@@ -534,8 +488,6 @@ void doMenu(int itemNum) {  // menu handler -- change render mode.
     case 3: ambientLight = 1 - ambientLight; break;
     case 4: viewpointLight = 1 - viewpointLight; break;
     case 5: redLight = 1 - redLight; break;
-    case 6: greenLight = 1 - greenLight; break;
-    case 7: blueLight = 1 - blueLight; break;
     case 8: exit(0);
     }
     glutPostRedisplay();
@@ -550,8 +502,6 @@ void createMenus() {  // make a menu containing the five render modes.
     glutAddMenuEntry("Toggle Global Ambient Light (M key)", 3);
     glutAddMenuEntry("Toggle Viewpoint Light (V key)", 4);
     glutAddMenuEntry("Toggle Red Light (R key)", 5);
-    glutAddMenuEntry("Toggle Green Light (G key)", 6);
-    glutAddMenuEntry("Toggle Blue Light (B key)", 7);
     glutAddMenuEntry("Quit (ESC key)", 8);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
