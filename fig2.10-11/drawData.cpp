@@ -30,7 +30,7 @@ bool tokenize(string str, vector<string>& array)
 		string token = str.substr(0, pos);
 
 		// check for BOM (Byte Order Mark)
-		if (token[0] == 'ï' && token[1] == '»' && token[2] == '¿')
+		if (token[0] == 'Ã¯' && token[1] == 'Â»' && token[2] == 'Â¿')
 			token.erase(0, 3);
 
 		array.push_back(token);
@@ -301,31 +301,19 @@ void drawData()
 				continue;
 			else
 			{
-				double new_x = x + 40 * (cos(angles[j]) * normData[j][i]);
+				double new_x = x + 3 * (cos(angles[j]) * normData[j][i]);
 				double new_y;
 				double dot;
 
 				if (direction == 0)
 				{
-					if (j + add != len)
-					{
-						new_y = y + 40 * (sin(angles[j]) * normData[j + 1][i]);
-						j++;
-					}	
-					else
-						new_y = y + 40 * (sin(angles[j]) * normData[j][i]);
+					new_y = y + 3 * (sin(angles[j]) * normData[j][i]);
 
 					dot = 245;
 				}
 				else
 				{
-					if (j + add != len)
-					{
-						new_y = y - 40 * (sin(angles[j]) * normData[j + 1][i]);
-						j++;
-					}
-					else
-						new_y = y - 40 * (sin(angles[j]) * normData[j][i]);
+					new_y = y - 3 * (sin(angles[j]) * normData[j][i]);
 
 					dot = 235;
 				}
