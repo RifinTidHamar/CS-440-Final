@@ -32,25 +32,25 @@ void drawRect() {
 
 
 // arrays for drawing rectangular prism
-int edgeElementArray[24] = {
+/*int edgeElementArray[48] = {
         0,1,  1,5,  5,4,  4,0,    // edges of the top face
         7,3,  3,2,  2,6,  6,7,    // edges of the bottom face
-        1,2,  0,3,  4,7,  5,6 }; // edges connecting top face to bottom face
+        1,2,  0,3,  4,7,  5,6, }; // edges connecting top face to bottom face*/
 
-float vertexCoords[24] = {  // Coordinates for the vertices of a cube.
-           2,1,1,   2,1,-1,   2,-1,-1,   2,-1,1,
-          -1,1,1,  -1,1,-1,  -1,-1,-1,  -1,-1,1 };
+float vertexCoords[48] = {  // Coordinates for the vertices of a cube.
+           /*0*/4,2,2, /*1*/4,2,-2, /*2*/4,-2,-2, /*3*/4,-2,2,
+           /*4*/-2,2,2, /*5*/-2,2,-2, /*6*/-2,-2,-2, /*7*/-2,-2,2,};
 
-float vertexColors[24] = {  // An RGB color value for each vertex
+/*float vertexColors[24] = {  // An RGB color value for each vertex
            1,0,0,   1,0,0,   1,0,0,   1,0,0,
-           1,0,0,   1,0,0,   1,0,0,   1,0,0, };
+           1,0,0,   1,0,0,   1,0,0,   1,0,0, };*/
 
-int elementArray[24] = {  // Vertex number for the six faces.
+int elementArray[48] = {  // Vertex number for the six faces.
           0,1,2,3, 0,3,7,4, 0,4,5,1,
-          6,2,1,5, 6,5,4,7, 6,7,3,2 };
-
+          6,2,1,5, 6,5,4,7, 6,7,3,2, };
 
 // Not currently working -------
+
 void drawRectangularPrism() {
 
   /*  glMatrixMode(GL_PROJECTION);
@@ -59,25 +59,24 @@ void drawRectangularPrism() {
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.5, 0.5, 0.5, 1);*/
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glLoadIdentity();             // Set up modelview transform, first cube.
+    //glLoadIdentity();             // Set up modelview transform, first cube.
     //glTranslatef(0.5, 0, 0);     // Move cube to left half of window.
-
+    //glTranslatef(0, 0, 0);      // Move cube to right half of window.
     glVertexPointer(3, GL_FLOAT, 0, vertexCoords);  // Set data type and location, first cube.
-    glColorPointer(3, GL_FLOAT, 0, vertexColors);
+    //glColorPointer(3, GL_FLOAT, 0, vertexColors);
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
+    //glEnable(GL_NORMALIZE);
+    //glEnableClientState(GL_COLOR_ARRAY);
+    //glEnable(GL_COLOR_MATERIAL);
+    glDrawElements(GL_QUADS, 48, GL_UNSIGNED_INT, elementArray);
+    
+    //glDisableClientState(GL_COLOR_ARRAY);  // Don't use color array for the edges.
+    //glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, edgeElementArray);  // Draw the edges!
 
-    glDrawElements(GL_QUADS, 24, GL_UNSIGNED_INT, elementArray);
-    glDisableClientState(GL_COLOR_ARRAY);  // Don't use color array for the edges.
-    glColor3f(0, 0, 0);  // The edges will be black.
-    glLineWidth(2);
-
-    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, edgeElementArray);  // Draw the edges!
-
-    glutSwapBuffers();
+    //glutSwapBuffers();
 
 }
 
@@ -282,7 +281,7 @@ void trackballMotionFunction(int x, int y) {
 
 const double PI = 3.141592654;
 
-int animating = 1;       // Is the animation running? 0 = animating
+//int animating = 0;       // Is the animation running? 0 = animating
 int ambientLight = 1;    // Should global ambient light be on?
 int viewpointLight = 1;  // Should the viewpoint light be on?
 int light = 1;           // Should the red light be on?
@@ -323,7 +322,7 @@ void lights() {
 
     glPushMatrix();
     glRotated(-frameNumber, 0, 1, 0);
-    glTranslated(0, 7, -10);
+    glTranslated(0, 2, -3);
     glLightfv(GL_LIGHT1, GL_POSITION, zero);
     if(showLightModel)
         glutSolidSphere(0.5, 16, 8);
@@ -361,7 +360,7 @@ void colorArrayForHue(double array[4], double h, double s, double v) {
 
 // wall of untouched code ends here***************************************
 
-/* Draws the scene, with a message in the bottom 60 pixels of the window.
+/* Draws the scene
  */
 void display() {
 
@@ -386,24 +385,13 @@ void display() {
     }
 
   
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
-
-    
-    //std::cout << glGetError() << std::endl; // error detecting
-
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, amb);
     glPushMatrix();
-
-    //drawRectangularPrism(); // not working
- 
-  
-   //glutSolidCube(8); // draws a cube - working
-
-    drawRect();
-
+    drawRectangularPrism(); 
+    //glutSolidCube(8); // draws a cube - working
+    //drawRect();
     glPopMatrix();
 
-
-   
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
 
@@ -422,6 +410,9 @@ void reshape(int w, int h) {
 /* Initialization, including setting up a camera and configuring the four lights.
  */
 void initGL() {
+
+    glColor3f(0, 0, 0);  // The edges will be black.
+    glLineWidth(2);
     glClearColor(0, 0, 0, 1);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
@@ -445,6 +436,7 @@ void initGL() {
 
 // --------------- support for animation ------------------------------------------
 
+/*
 void timerFunction(int timerID) {
     if (animating) {
         frameNumber++;
@@ -452,6 +444,7 @@ void timerFunction(int timerID) {
         glutPostRedisplay(); // Causes display() to be called.
     }
 }
+
 
 void toggleAnimation() {
     if (!animating) {
@@ -512,17 +505,17 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(600, 660);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("Left Mouse = ROTATE; Right Mouse = MENU");
+    glutCreateWindow("CS 440 final");
     initGL();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     cameraLookAt(5, 10, 30, 0, 0, 0, 0, 1, 0);
-    cameraSetScale(15);
+    cameraSetScale(10);
     glutMouseFunc(trackballMouseFunction);
     glutMotionFunc(trackballMotionFunction);
     //glutKeyboardFunc(charTyped);
     //createMenus();
-    toggleAnimation();
+    //toggleAnimation();
     glutMainLoop();
     return 0;
 }
