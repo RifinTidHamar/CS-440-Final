@@ -224,7 +224,7 @@ int animating = 1;       // Is the animation running?
 int drawBase = 0;        // Should the base be drawn?
 int ambientLight = 1;    // Should global ambient light be on?
 int viewpointLight = 0;  // Should the viewpoint light be on?
-int redLight = 1;        // Should the red light be on?
+int light = 1;        // Should the red light be on?
 int showLightModel = 1;  // should the light model be shown
 
 int frameNumber = 0;  // Frame number for use in animation.
@@ -236,7 +236,7 @@ int width, height;  // Size of the display, set in reshape().
 //------------------- Drawing functions ----------------------------------------
 
 /*  Sets the positions of the colored lights and turns them on and off, depending on
- *  the state of the redLight option.  Draws a small
+ *  the state of the light option.  Draws a small
  *  sphere at the location of each light.
  */
 void lights() {
@@ -250,7 +250,7 @@ void lights() {
     else
         glDisable(GL_LIGHT0);
 
-    if (redLight) {
+    if (light) {
         float red[] = { 0.5, 0.5, 0.5, 1 };
         glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, red);
         glEnable(GL_LIGHT1);
@@ -474,7 +474,7 @@ void charTyped(unsigned char ch, int x, int y) {
     case 'd': case 'D': drawBase = 1 - drawBase; break;
     case 'm': case 'M': ambientLight = 1 - ambientLight; break;
     case 'v': case 'V': viewpointLight = 1 - viewpointLight; break;
-    case 'r': case 'R': redLight = 1 - redLight; break;
+    case 'r': case 'R': light = 1 - light; break;
     case 27: exit(0);
     }
     glutPostRedisplay();
@@ -487,7 +487,7 @@ void doMenu(int itemNum) {  // menu handler -- change render mode.
     case 2: drawBase = 1 - drawBase; break;
     case 3: ambientLight = 1 - ambientLight; break;
     case 4: viewpointLight = 1 - viewpointLight; break;
-    case 5: redLight = 1 - redLight; break;
+    case 5: light = 1 - light; break;
     case 8: exit(0);
     }
     glutPostRedisplay();
