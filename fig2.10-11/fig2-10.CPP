@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <iostream>
 #include "readrgb.h"
-//for image things
 
+//for image things
 void bwtorgba(unsigned char* b, unsigned char* l, int n)
 {
     while (n--) {
@@ -277,7 +277,7 @@ unsigned* read_texture(char* name,
 
     return (unsigned*)base;
 }
-/// ////////////////////////////////////////////////////////////////////////////////////////
+/// ////////////////////////////end of image things////////////////////////////////////////////////////////////
 static double eyex = 0, eyey = 0, eyez = 30;
 static double refx = 0, refy = 0, refz = 0;
 static double upx = 0, upy = 1, upz = 0;
@@ -304,7 +304,7 @@ void drawRect() {
 
 struct rectangularPrism
 {
-    rectangularPrism(float px, float py, float pz, float sx, float sy, float sz)
+    rectangularPrism(float px = 0, float py = 0, float pz = 0, float sx = 0, float sy = 0, float sz = 0)
     {
         float x = sx + px;
         float nx = -sx + px;
@@ -324,21 +324,38 @@ struct rectangularPrism
                          nx,y,z,  nx,y,nz,  nx,ny,nz,  nx,ny,z };*/
 };
 
-rectangularPrism rectCent(0, 0, -5, 5, 5, 0.3);
-rectangularPrism rectLeft(-6, 0, -4, 1, 5, 1.3);
-rectangularPrism rectTop(0, 6, -4, 7, 1, 1.3);
-rectangularPrism rectRight(6, 0, -4, 1, 5, 1.3);
-rectangularPrism rectBot(0, -6, -4, 7, 1, 1.3);
-rectangularPrism rectPic(0, 0, -4.7, 4, 4, 0.5);
+rectangularPrism rectCent(0, 0, 0, 5, 5, 0.3);
+rectangularPrism rectLeft(-6, 0, 1, 1, 5, 1.3);
+rectangularPrism rectTop(0, 6, 1, 7, 1, 1.3);
+rectangularPrism rectRight(6, 0, 1, 1, 5, 1.3);
+rectangularPrism rectBot(0, -6, 1, 7, 1, 1.3);
+//rectangularPrism rectPic(0, 0, -4.7, 4, 4, 0.5);
+const int numRects = 20;
+rectangularPrism outerRectsX[numRects];
+rectangularPrism outerRectsY[numRects];
 
-
-
+void fillOuterRectsArrayData(float sx, float sy, float sz, float r, bool horz)
+{
+    float pz = 0;
+    float px = 0;
+    float radToAdd = 6.28 / numRects;
+    float currentRad = 0;
+    for (int i = 0; i < numRects; i++)
+    {
+        float px = r*cos(currentRad);
+        float pz = r*sin(currentRad);
+        if(horz)
+            outerRectsX[i] = rectangularPrism(px, 0.0, pz, sx, sy, sz);
+        else
+            outerRectsY[i] = rectangularPrism(px, pz, 0, sx, sy, sz);
+        currentRad += radToAdd;
+        //std::cout << px << " " << pz << "\n";
+    }
+}
 
 int elementArray[24] = {  // Vertex number for the six faces.
           0,1,2,3, 0,3,7,4, 0,4,5,1,
           6,2,1,5, 6,5,4,7, 6,7,3,2 };
-
-// Not currently working -------
 
 void drawRectangularPrism(rectangularPrism rect) {
 
@@ -387,7 +404,6 @@ void square(double side, int makeTexCoords, float z) {
     glVertex3d(-radius, radius, z);
     glEnd();
 } // end square
-
 
 // wall of untouched code begins here**************************************
 void cameraSetOrthographic(int ortho) {
@@ -480,7 +496,7 @@ void cameraApply() {
         double x2 = centerx + newwidth / 2;
         double y1 = centery - newheight / 2;
         double y2 = centery + newheight / 2;
-        glFrustum(x1, x2, y1, y2, var, viewDistance - zmin);
+        glFrustum(x1, x2, y1, y2, var, viewDistance * 2 - zmin);
     }
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -628,6 +644,7 @@ void lights() {
         glDisable(GL_LIGHT1);
     }
 
+    //not showing
     glPushMatrix();
     glRotated(-frameNumber, 0, 1, 0);
     glTranslated(0, 3, 1);
@@ -673,18 +690,41 @@ char* textureFileNames[1] = {   // file names for the files from which texture i
             "textures-rgb/castle.rgb",
 };
 
-float rotateX = 0;   // rotations for a simple viewing transform, applied to
-float rotateY = 0;   //    each teapot, controlled by the arrow and HOME keys.
+float rotateY = 0;
+float rotateX = 0;
+float rotateZ = 0;
+float radius = 25;
+float cameraZoom = 10;
+
+void specialKeyFunction(int key, int x, int y) {
+    // called when a special key is pressed 
+    if (key == GLUT_KEY_LEFT)
+        rotateY -= 15;
+    else if (key == GLUT_KEY_RIGHT)
+        rotateY += 15;
+    else if (key == GLUT_KEY_DOWN)
+        rotateX += 15;
+    else if (key == GLUT_KEY_UP)
+        rotateX -= 15;
+    else if (key == GLUT_KEY_PAGE_UP)
+        rotateZ += 15;
+    else if (key == GLUT_KEY_PAGE_DOWN)
+        rotateZ -= 15;
+    else if (key == GLUT_KEY_HOME)
+        rotateX = rotateY = rotateZ = 0;
+    glutPostRedisplay();
+}
 
 /* Draws the scene
  */
+
 void display() {
 
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glViewport(0, 60, width, height - 60);  // viewport for the drawing
-
+    cameraSetScale(cameraZoom);
     cameraApply();
 
     lights();
@@ -706,20 +746,28 @@ void display() {
 
     glEnable(GL_TEXTURE_2D);
 
-    /* Draw a teapot with the first texture at (-2.3,0.3,0) */
 
-    glBindTexture(GL_TEXTURE_2D, texID[0]);  // Bind texture #0 for use on the first teapot.
+    glBindTexture(GL_TEXTURE_2D, texID[0]);  // Bind texture #0 
 
     glPushMatrix();
     //glutSolidTeapot(2.0);
-    square(8, 1, -4.6);
+    square(8, 1, 0.6);
     glDisable(GL_TEXTURE_2D);
     drawRectangularPrism(rectCent);
     drawRectangularPrism(rectLeft);
     drawRectangularPrism(rectRight);
     drawRectangularPrism(rectTop);
     drawRectangularPrism(rectBot);
-
+    radius = cameraZoom * 2.5;
+    float s1 = cameraZoom * 0.1;
+    float s2 = cameraZoom * 0.2;
+    fillOuterRectsArrayData(s1, s2, s1, radius, true);
+    fillOuterRectsArrayData(s1, s1, s2, radius, false);
+    for (int i = 0; i < numRects; i++)
+    {
+        drawRectangularPrism(outerRectsX[i]);
+        drawRectangularPrism(outerRectsY[i]);
+    }
     //glutSolidCube(8); // draws a cube - working
     //drawRect();
     glPopMatrix();
@@ -769,7 +817,8 @@ void loadTextures() {
 /* Initialization, including setting up a camera and configuring the four lights.
  */
 void initGL() {
-
+    //fillOuterRectsArrayData(1, 2, 1, 25, true);
+    //fillOuterRectsArrayData(1, 1, 2, 25, false);
     glColor3f(0, 0, 0);  // The edges will be black.
     glLineWidth(2);
     glClearColor(0, 0, 0, 1);
@@ -813,17 +862,19 @@ void toggleAnimation() {
     else {
         animating = 0;
     }
-}
+}*/
 
 
 // --------------------- Menu Keyboard handling --------------------------------
-/*
+
 void charTyped(unsigned char ch, int x, int y) {
     switch (ch) {
-    case 'a': case 'A': toggleAnimation(); break;
+    //case 'a': case 'A': toggleAnimation(); break;
     case 'm': case 'M': ambientLight = 1 - ambientLight; break;
     case 'v': case 'V': viewpointLight = 1 - viewpointLight; break;
-    case 'r': case 'R': redLight = 1 - redLight; break;
+    case 'r': case 'R': light = 1 - light; break;
+    case 's': if (cameraZoom < 50) cameraZoom += 5; break;
+    case 'w': if (cameraZoom > 5) cameraZoom -= 5; break;
     case 27: exit(0);
     }
     glutPostRedisplay();
@@ -832,11 +883,12 @@ void charTyped(unsigned char ch, int x, int y) {
 
 void doMenu(int itemNum) {  // menu handler -- change render mode.
     switch (itemNum) {
-    case 1: toggleAnimation(); break;
-    case 3: ambientLight = 1 - ambientLight; break;
-    case 4: viewpointLight = 1 - viewpointLight; break;
-    case 5: redLight = 1 - redLight; break;
-    case 8: exit(0);
+    case 1: ambientLight = 1 - ambientLight; break;
+    case 2: viewpointLight = 1 - viewpointLight; break;
+    case 3: light = 1 - light; break;
+    case 5: if (cameraZoom < 50) cameraZoom += 5; break;
+    case 4: if (cameraZoom > 5) cameraZoom -= 5; break;
+    case 6: exit(0);
     }
     glutPostRedisplay();
 }
@@ -845,19 +897,18 @@ void doMenu(int itemNum) {  // menu handler -- change render mode.
 
 void createMenus() {  // make a menu containing the five render modes.
     int menu = glutCreateMenu(doMenu);
-    glutAddMenuEntry("Toggle Animation (A key)", 1);
-    glutAddMenuEntry("Toggle Global Ambient Light (M key)", 3);
-    glutAddMenuEntry("Toggle Viewpoint Light (V key)", 4);
-    glutAddMenuEntry("Toggle Red Light (R key)", 5);
-    glutAddMenuEntry("Toggle Green Light (G key)", 6);
-    glutAddMenuEntry("Toggle Blue Light (B key)", 7);
-    glutAddMenuEntry("Quit (ESC key)", 8);
+    //glutAddMenuEntry("Toggle Animation (A key)", 1);
+    glutAddMenuEntry("Toggle Global Ambient Light (M key)", 1);
+    glutAddMenuEntry("Toggle Viewpoint Light (V key)", 2);
+    glutAddMenuEntry("Toggle Light (R key)", 3);
+    glutAddMenuEntry("Quit (ESC key)", 6);
+    glutAddMenuEntry("Zoom-In (W key)", 4);
+    glutAddMenuEntry("Zoom-Out (S key)", 5);
     glutAttachMenu(GLUT_RIGHT_BUTTON);
-}*/
+}
 
 
 //---------------------------------------------------------------------------
-
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
@@ -870,11 +921,12 @@ int main(int argc, char** argv) {
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     cameraLookAt(5, 10, 30, 0, 0, 0, 0, 1, 0);
-    cameraSetScale(10);
+    cameraSetScale(cameraZoom);
     glutMouseFunc(trackballMouseFunction);
     glutMotionFunc(trackballMotionFunction);
-    //glutKeyboardFunc(charTyped);
-    //createMenus();
+    glutKeyboardFunc(charTyped);
+    glutSpecialFunc(specialKeyFunction);  
+    createMenus();
     //toggleAnimation();
     glutMainLoop();
     return 0;
