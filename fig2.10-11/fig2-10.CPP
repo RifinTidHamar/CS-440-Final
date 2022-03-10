@@ -723,7 +723,7 @@ void display() {
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glViewport(0, 60, width, height - 60);  // viewport for the drawing
+    glViewport(0, 0, width, height);  // viewport for the drawing
     cameraSetScale(cameraZoom);
     cameraApply();
 
@@ -873,8 +873,8 @@ void charTyped(unsigned char ch, int x, int y) {
     case 'm': case 'M': ambientLight = 1 - ambientLight; break;
     case 'v': case 'V': viewpointLight = 1 - viewpointLight; break;
     case 'r': case 'R': light = 1 - light; break;
-    case 's': if (cameraZoom < 50) cameraZoom += 5; break;
-    case 'w': if (cameraZoom > 5) cameraZoom -= 5; break;
+    case 's': if (cameraZoom < 100) cameraZoom += 1; break;
+    case 'w': if (cameraZoom > 1) cameraZoom -= 1; break;
     case 27: exit(0);
     }
     glutPostRedisplay();
@@ -886,8 +886,8 @@ void doMenu(int itemNum) {  // menu handler -- change render mode.
     case 1: ambientLight = 1 - ambientLight; break;
     case 2: viewpointLight = 1 - viewpointLight; break;
     case 3: light = 1 - light; break;
-    case 5: if (cameraZoom < 50) cameraZoom += 5; break;
-    case 4: if (cameraZoom > 5) cameraZoom -= 5; break;
+    case 5: if (cameraZoom < 100) cameraZoom += 1; break;
+    case 4: if (cameraZoom > 1) cameraZoom -= 1; break;
     case 6: exit(0);
     }
     glutPostRedisplay();
