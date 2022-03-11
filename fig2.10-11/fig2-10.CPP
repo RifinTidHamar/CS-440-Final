@@ -293,7 +293,7 @@ static double xminActual, xmaxActual, yminActual, ymaxActual;
 
 struct rectangularPrism
 {
-    rectangularPrism(float px = 0, float py = 0, float pz = 0, float sx = 0, float sy = 0, float sz = 0, float r = 1, float g = 1, float b = 1)
+    rectangularPrism(float px = 0, float py = 0, float pz = 0, float sx = 0, float sy = 0, float sz = 0, float r = 1, float g = 1, float b = 1, bool tex = false)
     {
         float x = sx + px;
         float nx = -sx + px;
@@ -307,33 +307,47 @@ struct rectangularPrism
         vCoord[12]= vCoord[15]= vCoord[18]= vCoord[21] = nx;
         vCoord[7]= vCoord[10]= vCoord[19]= vCoord[22] = ny;
         vCoord[5]= vCoord[8]= vCoord[17]= vCoord[20] = nz;
-
-        int i = 1;
-        for (int cnt = 0; cnt < 24; cnt++)
+        //std::cout << !tex;
+        if (!tex)
         {
-            if (i % 3 == 0)
+            int i = 1;
+            for (int cnt = 0; cnt < 24; cnt++)
             {
-                vCol[cnt] = b;
+                if (i % 3 == 0)
+                {
+                    vCol[cnt] = b;
+                }
+                else if (i % 2 == 0)
+                {
+                    vCol[cnt] = g;
+                }
+                else
+                {
+                    vCol[cnt] = r;
+                }
+                if (i == 3)
+                {
+                    i = 1;
+                }
+                else
+                    i++;
             }
-            else if (i % 2 == 0)
-            {
-                vCol[cnt] = g;
-            }
-            else
-            {
-                vCol[cnt] = r;
-            }
-            if (i == 3)
-            {
-                i = 1;
-            }
-            else
-                i++;
+        }
+        else
+        {
+            vTex[0] = vTex[3] = vTex[6] = vTex[9] = 0;
+            vTex[1] = vTex[4] = vTex[13] = vTex[16] = 0;
+            vTex[2] = vTex[11] = vTex[14] = vTex[23] = 0;
+            vTex[12] = vTex[15] = vTex[18] = vTex[21] = 0;
+            vTex[7] = vTex[10] = vTex[19] = vTex[22] = 0;
+            vTex[5] = vTex[8] = vTex[17] = vTex[20] = 0;
         }
     }
     float vCoord[24];/* = {x,y,z,   x,y,nz,   x,ny,nz,   x,ny,z,
                          nx,y,z,  nx,y,nz,  nx,ny,nz,  nx,ny,z };*/
     float vCol[24];
+
+    float vTex[24];
 };
 
 float brown[3] = { 0.5, 0.2, 0 };
@@ -343,7 +357,6 @@ rectangularPrism rectTop(0, 6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectRight(6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectBot(0, -6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectBack(0, 0, -0.6, 7, 7, 0.3, brown[0], brown[1], brown[2]);
-//rectangularPrism rectPic(0, 0, -4.7, 4, 4, 0.5);
 const int numRects = 40;
 rectangularPrism outerRectsX[numRects];
 rectangularPrism outerRectsY[numRects];
@@ -365,10 +378,7 @@ void fillOuterRectsArrayData(float sx, float sy, float sz, float r, int dir)
             outerRectsY[i] = rectangularPrism(px, pz, 0, sx, sy, sz);
         else if (dir == 3)//z
             outerRectsZ[i] = rectangularPrism(0, pz, px, sx, sy, sz);
-        /*else if (dir == 4)//z
-            outerRectsY[i] = rectangularPrism(pz, pz, px, sx, sy, sz);*/
         currentRad += radToAdd;
-        //std::cout << px << " " << pz << "\n";
     }
 }
 
@@ -384,44 +394,77 @@ void drawRectangularPrism(rectangularPrism rect) {
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.5, 0.5, 0.5, 1);*/
 
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    ////glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //glLoadIdentity();             // Set up modelview transform, first cube.
-    //glTranslatef(0.5, 0, 0);     // Move cube to left half of window.
+    ////glLoadIdentity();             // Set up modelview transform, first cube.
+    ////glTranslatef(0.5, 0, 0);     // Move cube to left half of window.
     glVertexPointer(3, GL_FLOAT, 0, rect.vCoord);  // Set data type and location, first cube.
     glColorPointer(3, GL_FLOAT, 0, rect.vCol);
+    //glTexCoordPointer(3, GL_FLOAT, 0, rect.vTex);
     glEnableClientState(GL_VERTEX_ARRAY);
-    //glEnable(GL_NORMALIZE);
+    //glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
-    //glEnable(GL_COLOR_MATERIAL);
+    ////glEnable(GL_NORMALIZE);
+    ////glEnable(GL_COLOR_MATERIAL);
     glDrawElements(GL_QUADS, 24, GL_UNSIGNED_INT, elementArray);
     
-    //glDisableClientState(GL_COLOR_ARRAY);  // Don't use color array for the edges.
-    //glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, edgeElementArray);  // Draw the edges!
+    ////glDisableClientState(GL_COLOR_ARRAY);  // Don't use color array for the edges.
+    ////glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, edgeElementArray);  // Draw the edges!
 
     //glutSwapBuffers();
 
 }
 
-void square(double side, int makeTexCoords, float z) {
-    double radius = side / 2;
+void square(double side, float z, float s) {
+    double radius = side/2;
     glBegin(GL_POLYGON);
     glNormal3f(0, 0, 1);
-    if (makeTexCoords)
-        glTexCoord2d(0, 0);
-    glVertex3d(-radius, -radius, z);
-    if (makeTexCoords)
-        glTexCoord2d(1, 0);
-    glVertex3d(radius, -radius, z);
-    if (makeTexCoords)
-        glTexCoord2d(1, 1);
-    glVertex3d(radius, radius, z);
-    if (makeTexCoords)
-        glTexCoord2d(0, 1);
-    glVertex3d(-radius, radius, z);
+    glTexCoord2d(0, 0);
+    glVertex3d(-radius - s, -radius, z); //toRight
+    glTexCoord2d(1, 0);
+    glVertex3d(radius + s, -radius, z); //topLeft
+    glTexCoord2d(1, 1);
+    glVertex3d(radius + s, radius, z);//bottomLeft
+    glTexCoord2d(0, 1);
+    glVertex3d(-radius - s, radius, z);//bottomRight
     glEnd();
 } // end square
-
+void cube(double side, float z, float sz) {
+    glPushMatrix();
+    glRotatef(90, 1, 0, 0);  //bottomFace
+    glPushMatrix();
+    glTranslated(0, 0, side / 2);
+    square(side, z + sz, 0);
+    glPopMatrix();
+    glPushMatrix();
+    glRotatef(90, 0, 1, 0);
+    glTranslated(0, 0, side / 2);
+    square(side, z, sz); //rightFace
+    glPopMatrix();
+    glPushMatrix();
+    glRotatef(180, 0, 1, 0);
+    glTranslated(0, 0, side / 2);
+    square(side, z + sz, 0); // topFace
+    glPopMatrix();
+    glPushMatrix();
+    glRotatef(270, 0, 1, 0);
+    glTranslated(0, 0, side / 2);
+    square(side, z, sz); // leftFace
+    glPopMatrix();
+    glPushMatrix();
+    glRotatef(-90, 1, 0, 0);//
+    glRotatef(90, 0, 0, 1);//
+    glTranslated(0, 0, side / 2);
+    square(side, z, sz);//front Face
+    glPopMatrix();
+    glPushMatrix();
+    glRotatef(90, 1, 0, 0);
+    glRotatef(90, 0, 0, 1);
+    glTranslated(0, 0, side / 2);
+    square(side, z , sz); // backFace
+    glPopMatrix();
+    glPopMatrix();
+}
 // wall of untouched code begins here**************************************
 void cameraSetOrthographic(int ortho) {
     orthographic = ortho;
@@ -701,10 +744,12 @@ void colorArrayForHue(double array[4], double h, double s, double v) {
 
 
 // wall of untouched code ends here***************************************
-GLuint texID[1];  // Texture ID's for the three textures.
+const int textNum = 2;
+GLuint texID[textNum];  // Texture ID's for the three textures.
 
-char* textureFileNames[1] = {   // file names for the files from which texture images are loaded
-            "textures-rgb/castle.rgb",
+char* textureFileNames[textNum] = {   // file names for the files from which texture images are loaded
+            "textures-rgb/castle.rgb", 
+            "textures-rgb/woodGrain.rgb"
 };
 
 float rotateY = 0;
@@ -760,18 +805,21 @@ void display() {
   
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, amb);
 
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texID[0]);  // Bind texture #0 
+   
+    //glTranslatef(10, 0, 0);     // Move cube to left half of window.
+    
+    //glTranslatef(-10, 0, 0);     // Move cube to left half of window.
     glPushMatrix();
-    //glutSolidTeapot(2.0);
-    square(8, 1, 0.31);
+    /*//glutSolidTeapot(2.0);
+    ////glTranslatef(0.5, 0, 0);     // Move cube to left half of window.
     glDisable(GL_TEXTURE_2D);
-    drawRectangularPrism(rectCent);
     drawRectangularPrism(rectLeft);
     drawRectangularPrism(rectRight);
     drawRectangularPrism(rectTop);
     drawRectangularPrism(rectBot);
-    drawRectangularPrism(rectBack);
+    drawRectangularPrism(rectBack);*/
+    //glDisable(GL_TEXTURE_2D);
+    drawRectangularPrism(rectCent);
     radius = cameraZoom * 2.5;
     float s1 = cameraZoom * 0.05;
     float s2 = cameraZoom * 0.05;
@@ -786,6 +834,24 @@ void display() {
         drawRectangularPrism(outerRectsZ[i]);
     }
     glPopMatrix();
+    //makes picture in the middle
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texID[0]);  // Bind texture #0 
+    square(8, 0.31, 0);
+    //makes wooden frame
+    glBindTexture(GL_TEXTURE_2D, texID[1]);  // Bind texture #1
+    glTranslatef(-6, 0, 0.75);
+    cube(2, 0, 4);
+    glTranslatef(12, 0, 0);
+    cube(2, 0, 4);
+    glTranslatef(-6, 0, 0);
+    glTranslatef(0, 6, 0);
+    glRotatef(90, 0, 0, 1);
+    cube(2, 0, 6);
+    glTranslatef(-12, 0, 0);
+    cube(2, 0, 6);
+
+    glDisable(GL_TEXTURE_2D);
 
     glutSwapBuffers();
 
@@ -800,8 +866,8 @@ void reshape(int w, int h) {
 }
 
 void loadTextures() {
-    glGenTextures(1, texID);  // Get the texture object IDs.
-    for (int i = 0; i < 1; i++) {
+    glGenTextures(textNum, texID);  // Get the texture object IDs.
+    for (int i = 0; i < textNum; i++) {
         void* imgData;  // Pointer to image color data read from the file.
         int imgWidth;   // The width of the image that was read.
         int imgHeight;  // The height.
@@ -886,8 +952,8 @@ void charTyped(unsigned char ch, int x, int y) {
     case 'm': case 'M': ambientLight = 1 - ambientLight; break;
     case 'v': case 'V': viewpointLight = 1 - viewpointLight; break;
     case 'r': case 'R': light = 1 - light; break;
-    case 's': if (cameraZoom < 100) cameraZoom += 1; break;
-    case 'w': if (cameraZoom > 1) cameraZoom -= 1; break;
+    case 's': case 'S': if (cameraZoom < 100) cameraZoom += 1; break;
+    case 'w': case 'W': if (cameraZoom > 1) cameraZoom -= 1; break;
     case 27: exit(0);
     }
     glutPostRedisplay();
