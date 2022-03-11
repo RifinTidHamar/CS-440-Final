@@ -291,20 +291,9 @@ static int preserveAspect = 1;
 static double xminActual, xmaxActual, yminActual, ymaxActual;
 
 
-// At least produces a rectangle
-void drawRect() {
-    glColor3f(1, 1, 1);
-    glBegin(GL_QUADS);
-    glVertex2f(-5.0f, 5.0f);
-    glVertex2f(-5.0f, 0.0f);
-    glVertex2f(5.0f, 0.0f);
-    glVertex2f(5.0f, 5.0f);
-    glEnd();
-}
-
 struct rectangularPrism
 {
-    rectangularPrism(float px = 0, float py = 0, float pz = 0, float sx = 0, float sy = 0, float sz = 0)
+    rectangularPrism(float px = 0, float py = 0, float pz = 0, float sx = 0, float sy = 0, float sz = 0, float r = 1, float g = 1, float b = 1)
     {
         float x = sx + px;
         float nx = -sx + px;
@@ -312,23 +301,47 @@ struct rectangularPrism
         float ny = -sy + py;
         float z = sz + pz;
         float nz = -sz + pz;
-        vc[0]= vc[3]= vc[6]= vc[9] = x; 
-        vc[1]= vc[4]= vc[13]= vc[16] = y; 
-        vc[2]= vc[11]= vc[14]= vc[23] = z; 
-        vc[12]= vc[15]= vc[18]= vc[21] = nx;
-        vc[7]= vc[10]= vc[19]= vc[22] = ny;
-        vc[5]= vc[8]= vc[17]= vc[20] = nz;
+        vCoord[0]= vCoord[3]= vCoord[6]= vCoord[9] = x; 
+        vCoord[1]= vCoord[4]= vCoord[13]= vCoord[16] = y; 
+        vCoord[2]= vCoord[11]= vCoord[14]= vCoord[23] = z; 
+        vCoord[12]= vCoord[15]= vCoord[18]= vCoord[21] = nx;
+        vCoord[7]= vCoord[10]= vCoord[19]= vCoord[22] = ny;
+        vCoord[5]= vCoord[8]= vCoord[17]= vCoord[20] = nz;
 
+        int i = 1;
+        for (int cnt = 0; cnt < 24; cnt++)
+        {
+            if (i % 3 == 0)
+            {
+                vCol[cnt] = b;
+            }
+            else if (i % 2 == 0)
+            {
+                vCol[cnt] = g;
+            }
+            else
+            {
+                vCol[cnt] = r;
+            }
+            if (i == 3)
+            {
+                i = 1;
+            }
+            else
+                i++;
+        }
     }
-    float vc[24];/* = {x,y,z,   x,y,nz,   x,ny,nz,   x,ny,z,
+    float vCoord[24];/* = {x,y,z,   x,y,nz,   x,ny,nz,   x,ny,z,
                          nx,y,z,  nx,y,nz,  nx,ny,nz,  nx,ny,z };*/
+    float vCol[24];
 };
-
-rectangularPrism rectCent(0, 0, 0, 5, 5, 0.3);
-rectangularPrism rectLeft(-6, 0, 1, 1, 5, 1.3);
-rectangularPrism rectTop(0, 6, 1, 7, 1, 1.3);
-rectangularPrism rectRight(6, 0, 1, 1, 5, 1.3);
-rectangularPrism rectBot(0, -6, 1, 7, 1, 1.3);
+float brown[3] = { 0.5, 0.2, 0 };
+rectangularPrism rectCent(0, 0, 0, 5, 5, 0.3, 0.2, 0.2, 0.2);
+rectangularPrism rectLeft(-6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
+rectangularPrism rectTop(0, 6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
+rectangularPrism rectRight(6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
+rectangularPrism rectBot(0, -6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
+rectangularPrism rectBack(0, 0, -0.3, 7, 7, 0.3, brown[0], brown[1], brown[2]);
 //rectangularPrism rectPic(0, 0, -4.7, 4, 4, 0.5);
 const int numRects = 20;
 rectangularPrism outerRectsX[numRects];
@@ -370,12 +383,12 @@ void drawRectangularPrism(rectangularPrism rect) {
     //glLoadIdentity();             // Set up modelview transform, first cube.
     //glTranslatef(0.5, 0, 0);     // Move cube to left half of window.
     //glTranslatef(0, 0, 0);      // Move cube to right half of window.
-    glVertexPointer(3, GL_FLOAT, 0, rect.vc);  // Set data type and location, first cube.
-    //glColorPointer(3, GL_FLOAT, 0, vertexColors);
+    glVertexPointer(3, GL_FLOAT, 0, rect.vCoord);  // Set data type and location, first cube.
+    glColorPointer(3, GL_FLOAT, 0, rect.vCol);
 
     glEnableClientState(GL_VERTEX_ARRAY);
     //glEnable(GL_NORMALIZE);
-    //glEnableClientState(GL_COLOR_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
     //glEnable(GL_COLOR_MATERIAL);
     glDrawElements(GL_QUADS, 24, GL_UNSIGNED_INT, elementArray);
     
@@ -496,7 +509,7 @@ void cameraApply() {
         double x2 = centerx + newwidth / 2;
         double y1 = centery - newheight / 2;
         double y2 = centery + newheight / 2;
-        glFrustum(x1, x2, y1, y2, var, viewDistance * 2 - zmin);
+        glFrustum(x1, x2, y1, y2, var, viewDistance * 3 - zmin);
     }
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -758,6 +771,7 @@ void display() {
     drawRectangularPrism(rectRight);
     drawRectangularPrism(rectTop);
     drawRectangularPrism(rectBot);
+    drawRectangularPrism(rectBack);
     radius = cameraZoom * 2.5;
     float s1 = cameraZoom * 0.1;
     float s2 = cameraZoom * 0.2;
@@ -886,8 +900,8 @@ void doMenu(int itemNum) {  // menu handler -- change render mode.
     case 1: ambientLight = 1 - ambientLight; break;
     case 2: viewpointLight = 1 - viewpointLight; break;
     case 3: light = 1 - light; break;
-    case 5: if (cameraZoom < 100) cameraZoom += 1; break;
-    case 4: if (cameraZoom > 1) cameraZoom -= 1; break;
+    case 5: if (cameraZoom < 100) cameraZoom += 10; break;
+    case 4: if (cameraZoom > 10) cameraZoom -= 10; break;
     case 6: exit(0);
     }
     glutPostRedisplay();
@@ -915,7 +929,7 @@ int main(int argc, char** argv) {
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(600, 660);
     glutInitWindowPosition(100, 100);
-    glutCreateWindow("CS 440 final");
+    glutCreateWindow("CS 440 final - right click to see options");
     initGL();
     loadTextures();
     glutDisplayFunc(display);
