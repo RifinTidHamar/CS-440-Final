@@ -1,13 +1,16 @@
 ﻿cl : command line warning D9035: option 'Gm' has been deprecated and will be removed in a future release
   drawData.cpp
-D:\Downloads\fig2.10-11\drawData.cpp(181,22): warning C4018: '<': signed/unsigned mismatch
-D:\Downloads\fig2.10-11\drawData.cpp(188,21): warning C4018: '<': signed/unsigned mismatch
-D:\Downloads\fig2.10-11\drawData.cpp(206,20): warning C4018: '<': signed/unsigned mismatch
-D:\Downloads\fig2.10-11\drawData.cpp(211,20): warning C4018: '<': signed/unsigned mismatch
-D:\Downloads\fig2.10-11\drawData.cpp(214,20): warning C4018: '<': signed/unsigned mismatch
-D:\Downloads\fig2.10-11\drawData.cpp(248,21): warning C4018: '<': signed/unsigned mismatch
-D:\Downloads\fig2.10-11\drawData.cpp(253,22): warning C4018: '<': signed/unsigned mismatch
-D:\Downloads\fig2.10-11\drawData.cpp(269,20): warning C4018: '<': signed/unsigned mismatch
-D:\Downloads\fig2.10-11\drawData.cpp(281,26): warning C4018: '<': signed/unsigned mismatch
-D:\Downloads\fig2.10-11\drawData.cpp(298,21): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(84,21): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(90,21): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(206,22): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(213,21): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(245,20): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(281,20): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(286,20): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(289,20): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(313,21): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(318,22): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(353,20): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(366,26): warning C4018: '<': signed/unsigned mismatch
+D:\Downloads\fig2.10-11\drawData.cpp(383,21): warning C4018: '<': signed/unsigned mismatch
   fig2-10.vcxproj -> D:\Downloads\fig2.10-11\Debug\fig2-10.exe
