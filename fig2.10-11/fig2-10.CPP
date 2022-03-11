@@ -335,6 +335,7 @@ struct rectangularPrism
                          nx,y,z,  nx,y,nz,  nx,ny,nz,  nx,ny,z };*/
     float vCol[24];
 };
+
 float brown[3] = { 0.5, 0.2, 0 };
 rectangularPrism rectCent(0, 0, 0, 5, 5, 0.3, 0.1, 0.1, 0.1);
 rectangularPrism rectLeft(-6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
@@ -346,8 +347,9 @@ rectangularPrism rectBack(0, 0, -0.6, 7, 7, 0.3, brown[0], brown[1], brown[2]);
 const int numRects = 40;
 rectangularPrism outerRectsX[numRects];
 rectangularPrism outerRectsY[numRects];
+rectangularPrism outerRectsZ[numRects];
 
-void fillOuterRectsArrayData(float sx, float sy, float sz, float r, bool horz)
+void fillOuterRectsArrayData(float sx, float sy, float sz, float r, int dir)
 {
     float pz = 0;
     float px = 0;
@@ -357,10 +359,14 @@ void fillOuterRectsArrayData(float sx, float sy, float sz, float r, bool horz)
     {
         float px = r*cos(currentRad);
         float pz = r*sin(currentRad);
-        if(horz)
+        if(dir == 1) //x
             outerRectsX[i] = rectangularPrism(px, 0.0, pz, sx, sy, sz);
-        else
+        else if (dir == 2)//y
             outerRectsY[i] = rectangularPrism(px, pz, 0, sx, sy, sz);
+        else if (dir == 3)//z
+            outerRectsZ[i] = rectangularPrism(0, pz, px, sx, sy, sz);
+        /*else if (dir == 4)//z
+            outerRectsY[i] = rectangularPrism(pz, pz, px, sx, sy, sz);*/
         currentRad += radToAdd;
         //std::cout << px << " " << pz << "\n";
     }
@@ -768,13 +774,16 @@ void display() {
     drawRectangularPrism(rectBack);
     radius = cameraZoom * 2.5;
     float s1 = cameraZoom * 0.05;
-    float s2 = cameraZoom * 0.2;
-    fillOuterRectsArrayData(s1, s2, s1, radius, true);
-    fillOuterRectsArrayData(s1, s1, s2, radius, false);
+    float s2 = cameraZoom * 0.05;
+    fillOuterRectsArrayData(s1, s2, s1, radius, 1);
+    fillOuterRectsArrayData(s1, s1, s2, radius, 2);
+    fillOuterRectsArrayData(s1, s1, s2, radius, 3);
+
     for (int i = 0; i < numRects; i++)
     {
         drawRectangularPrism(outerRectsX[i]);
         drawRectangularPrism(outerRectsY[i]);
+        drawRectangularPrism(outerRectsZ[i]);
     }
     glPopMatrix();
 
