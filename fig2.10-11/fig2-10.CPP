@@ -343,7 +343,7 @@ rectangularPrism rectRight(6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectBot(0, -6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectBack(0, 0, -0.6, 7, 7, 0.3, brown[0], brown[1], brown[2]);
 //rectangularPrism rectPic(0, 0, -4.7, 4, 4, 0.5);
-const int numRects = 20;
+const int numRects = 40;
 rectangularPrism outerRectsX[numRects];
 rectangularPrism outerRectsY[numRects];
 
@@ -767,7 +767,7 @@ void display() {
     drawRectangularPrism(rectBot);
     drawRectangularPrism(rectBack);
     radius = cameraZoom * 2.5;
-    float s1 = cameraZoom * 0.1;
+    float s1 = cameraZoom * 0.05;
     float s2 = cameraZoom * 0.2;
     fillOuterRectsArrayData(s1, s2, s1, radius, true);
     fillOuterRectsArrayData(s1, s1, s2, radius, false);
