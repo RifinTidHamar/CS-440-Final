@@ -752,7 +752,9 @@ char* textureFileNames[textNum] = {   // file names for the files from which tex
             "textures-rgb/woodGrain.rgb"
 };
 
-float rotateY = 0;
+
+// rotations for special key function
+float rotateY = 0;     
 float rotateX = 0;
 float rotateZ = 0;
 float radius = 25;
@@ -782,6 +784,8 @@ void specialKeyFunction(int key, int x, int y) {
 
 void display() {
 
+   
+
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -790,6 +794,10 @@ void display() {
     cameraApply();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+   
+    glPushMatrix();
+  
+   
     lights();
 
     float zero[] = { 0, 0, 0, 1 };
@@ -805,11 +813,12 @@ void display() {
   
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, amb);
 
-   
+    glPopMatrix();
+    
     //glTranslatef(10, 0, 0);     // Move cube to left half of window.
     
     //glTranslatef(-10, 0, 0);     // Move cube to left half of window.
-    glPushMatrix();
+    
     /*//glutSolidTeapot(2.0);
     ////glTranslatef(0.5, 0, 0);     // Move cube to left half of window.
     glDisable(GL_TEXTURE_2D);
@@ -819,7 +828,8 @@ void display() {
     drawRectangularPrism(rectBot);
     drawRectangularPrism(rectBack);*/
     //glDisable(GL_TEXTURE_2D);
-    drawRectangularPrism(rectCent);
+
+
     radius = cameraZoom * 2.5;
     float s1 = cameraZoom * 0.05;
     float s2 = cameraZoom * 0.05;
@@ -833,13 +843,24 @@ void display() {
         drawRectangularPrism(outerRectsY[i]);
         drawRectangularPrism(outerRectsZ[i]);
     }
-    glPopMatrix();
+  
+    glPushMatrix();
+
+    glRotatef(rotateZ, 0, 0, 1);     // Apply rotations.
+    glRotatef(rotateY, 0, 1, 0);
+    glRotatef(rotateX, 1, 0, 0);
+
+    drawRectangularPrism(rectCent);
+
     //makes picture in the middle
     glEnable(GL_TEXTURE_2D);
+
     glBindTexture(GL_TEXTURE_2D, texID[0]);  // Bind texture #0 
     square(8, 0.31, 0);
+
     //makes wooden frame
     glBindTexture(GL_TEXTURE_2D, texID[1]);  // Bind texture #1
+
     glTranslatef(-6, 0, 0.75);
     cube(2, 0, 4);
     glTranslatef(12, 0, 0);
@@ -851,9 +872,12 @@ void display() {
     glTranslatef(-12, 0, 0);
     cube(2, 0, 6);
 
+  
     glDisable(GL_TEXTURE_2D);
 
+    glPopMatrix();
     glutSwapBuffers();
+
 
 }
 
