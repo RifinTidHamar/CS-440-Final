@@ -351,7 +351,7 @@ struct rectangularPrism
 };
 
 float brown[3] = { 0.5, 0.2, 0 };
-rectangularPrism rectCent(0, 0, 0, 5, 5, 0.3, 0.1, 0.1, 0.1);
+rectangularPrism rectCent(0, 0, 0, 5, 5, 0.3, 0.5, 0.6, 0.5);
 rectangularPrism rectLeft(-6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectTop(0, 6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectRight(6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
