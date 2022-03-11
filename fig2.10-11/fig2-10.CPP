@@ -341,7 +341,7 @@ rectangularPrism rectLeft(-6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectTop(0, 6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectRight(6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectBot(0, -6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
-rectangularPrism rectBack(0, 0, -0.3, 7, 7, 0.3, brown[0], brown[1], brown[2]);
+rectangularPrism rectBack(0, 0, -0.6, 7, 7, 0.3, brown[0], brown[1], brown[2]);
 //rectangularPrism rectPic(0, 0, -4.7, 4, 4, 0.5);
 const int numRects = 20;
 rectangularPrism outerRectsX[numRects];
@@ -382,10 +382,8 @@ void drawRectangularPrism(rectangularPrism rect) {
 
     //glLoadIdentity();             // Set up modelview transform, first cube.
     //glTranslatef(0.5, 0, 0);     // Move cube to left half of window.
-    //glTranslatef(0, 0, 0);      // Move cube to right half of window.
     glVertexPointer(3, GL_FLOAT, 0, rect.vCoord);  // Set data type and location, first cube.
     glColorPointer(3, GL_FLOAT, 0, rect.vCol);
-
     glEnableClientState(GL_VERTEX_ARRAY);
     //glEnable(GL_NORMALIZE);
     glEnableClientState(GL_COLOR_ARRAY);
@@ -764,7 +762,7 @@ void display() {
 
     glPushMatrix();
     //glutSolidTeapot(2.0);
-    square(8, 1, 0.6);
+    square(8, 1, 0.31);
     glDisable(GL_TEXTURE_2D);
     drawRectangularPrism(rectCent);
     drawRectangularPrism(rectLeft);
@@ -831,6 +829,7 @@ void loadTextures() {
 /* Initialization, including setting up a camera and configuring the four lights.
  */
 void initGL() {
+    glShadeModel(GL_FLAT);
     //fillOuterRectsArrayData(1, 2, 1, 25, true);
     //fillOuterRectsArrayData(1, 1, 2, 25, false);
     glColor3f(0, 0, 0);  // The edges will be black.
