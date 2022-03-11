@@ -336,7 +336,7 @@ struct rectangularPrism
     float vCol[24];
 };
 float brown[3] = { 0.5, 0.2, 0 };
-rectangularPrism rectCent(0, 0, 0, 5, 5, 0.3, 0.2, 0.2, 0.2);
+rectangularPrism rectCent(0, 0, 0, 5, 5, 0.3, 0.1, 0.1, 0.1);
 rectangularPrism rectLeft(-6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectTop(0, 6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectRight(6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
@@ -636,7 +636,7 @@ int width, height;  // Size of the display, set in reshape().
  */
 void lights() {
 
-    glColor3d(0.5, 0.5, 0.5);
+    glColor3d(1, 1, 1);
     float zero[] = { 0, 0, 0, 1 };
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, zero);
 
@@ -658,7 +658,7 @@ void lights() {
     //not showing
     glPushMatrix();
     glRotated(-frameNumber, 0, 1, 0);
-    glTranslated(0, 3, 1);
+    glTranslated(0, 10, 6);
     glLightfv(GL_LIGHT1, GL_POSITION, zero);
     if(showLightModel)
         glutSolidSphere(0.5, 16, 8);
@@ -737,6 +737,7 @@ void display() {
     glViewport(0, 0, width, height);  // viewport for the drawing
     cameraSetScale(cameraZoom);
     cameraApply();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     lights();
 
@@ -750,16 +751,11 @@ void display() {
     else {
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, zero);
     }
-
   
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, amb);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, amb);
 
     glEnable(GL_TEXTURE_2D);
-
-
     glBindTexture(GL_TEXTURE_2D, texID[0]);  // Bind texture #0 
-
     glPushMatrix();
     //glutSolidTeapot(2.0);
     square(8, 1, 0.31);
@@ -780,12 +776,7 @@ void display() {
         drawRectangularPrism(outerRectsX[i]);
         drawRectangularPrism(outerRectsY[i]);
     }
-    //glutSolidCube(8); // draws a cube - working
-    //drawRect();
     glPopMatrix();
-
-    glEnable(GL_LIGHTING);
-    glEnable(GL_DEPTH_TEST);
 
     glutSwapBuffers();
 
