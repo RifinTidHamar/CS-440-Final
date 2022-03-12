@@ -1,3 +1,4 @@
+// C++ libraries
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -5,33 +6,84 @@
 #include <vector>
 #include <limits>
 #include <cmath>
+#include <algorithm>
 
-#define NOMINMAX
+// OpenGL
 #include <windows.h>
 #include <gl/Gl.h>
 #include <gl/Glu.h>
 #include "glut.h"
 
-#include "calibrateData.h"
+// Group 5
 #include "drawdata.h"
 
 using namespace std;
 
-// user input for data then draws it
+bool tokenize(string str, vector<string>& array)
+{
+	string delim = ",";
+	size_t pos = 0;
+	bool empty = true;
+
+	while ((pos = str.find(delim)) != string::npos)
+	{
+		string token = str.substr(0, pos);
+
+		// check for BOM (Byte Order Mark)
+		if (token[0] == 'ï' && token[1] == '»' && token[2] == '¿')
+			token.erase(0, 3);
+
+		array.push_back(token);
+		str.erase(0, pos + delim.length());
+
+		empty = false;
+	}
+	if (str.length() > 0)
+	{
+		array.push_back(str);
+		empty = false;
+	}
+
+
+	return empty;
+}
+
+void getData(vector<string> array, double* allNum)
+{
+	size_t size = array.size();
+
+	double sum = 0;
+
+	try
+	{
+		for (size_t i = 0; i < size; i++)
+		{
+			double n = stod(array.at(i));
+			allNum[i] = n;
+			sum += n;
+		}
+	}
+	catch (exception e)
+	{
+		// data double not be converted to double
+		// potentially inconsistent data (bad dataset)
+		allNum[0] = -1;
+		return;
+	}
+}
+
 void drawData()
 {
 	string path;
 	string line;
 
-	// get user input for file path
 	cout << "Enter csv file path: ";
 	getline(cin, path);
 
-	// user input for if dataset has id column
 	cout << "\nIs the first column for ID? (Y/N)" << endl;
 
 	bool done = false;
-	int id = 0;
+	bool id = false;
 
 	while (!done)
 	{
@@ -41,7 +93,7 @@ void drawData()
 
 		if (temp.compare("Y") == 0 || temp.compare("y") == 0)
 		{
-			id = 1;
+			id = true;
 			done = true;
 		}
 		else if (temp.compare("N") == 0 || temp.compare("n") == 0)
@@ -50,7 +102,6 @@ void drawData()
 			cout << "\nPlease enter a (Y/N).\nIs the first column for ID? (Y/N)" << endl;
 	}
 
-	// user input for if dataset has class column
 	cout << "\nIs the last column for class labels? (Y/N)" << endl;
 	
 	done = false;
@@ -73,7 +124,6 @@ void drawData()
 			cout << "\nPlease enter a (Y/N).\nIs the last column for class labels? (Y/N)" << endl;
 	}
 
-	// user input for if dataset has label row
 	cout << "\nIs the first row for labels? (Y/N)" << endl;
 
 	done = false;
@@ -96,7 +146,6 @@ void drawData()
 			cout << "\nPlease enter a (Y/N).\nIs the first row for labels? (Y/N)" << endl;
 	}
 
-	// open file
 	ifstream file(path);
 	if (!file)
 	{
@@ -104,21 +153,17 @@ void drawData()
 
 		exit(-1);
 	}
+
+	vector<string> labels;
 	
-	// get labels then discard
 	if (label && getline(file, line))
-	{
-		vector<string> labels;
 		tokenize(line, labels);
-	}
-		
-	// holds columns
+
 	vector<string>* cols = NULL;
 
 	bool first = true;
 	size_t len = 0;
 
-	// puts all data into columns
 	while (getline(file, line))
 	{
 		vector<string> row;
@@ -144,7 +189,6 @@ void drawData()
 			cols[i].push_back(row.at(i));
 	}
 
-	// number of rows
 	size_t size;
 
 	if (cols == NULL)
@@ -153,50 +197,57 @@ void drawData()
 
 		exit(-1);
 	}
-	else
-	{
-		size = cols[0].size();
-	}
 
-	// holds data
+	else
+		size = cols[0].size();
+
 	double** normData = new double* [len];
 
 	for (int i = 0; i < len; i++)
 		normData[i] = new double[size];
 
-	// holds classes
-	string* stringData;
-	
+	string** stringData = new string * [len];
+
+	for (int i = 0; i < len; i++)
+		stringData[i] = new string[size];
+
 	for (int i = 0; i < len; i++)
 	{
-		if (c_label && i == len - 1)
-		{
+		if (c_label && (i + 1) == len)
 			normData[i][0] = -1;
-		}	
-		else if (id < 1)
-		{
-			normalizeData(cols[i], normData[i]);
-		}
+		else if (!id)
+			getData(cols[i], normData[i]);
 		else
 		{
 			normData[i][0] = -1;
-			id = -1;
+			id = false;
 		}
 
-		if (i == len - 1 && normData[i][0] == -1)
-			stringData = &cols[i][0];
+		if (normData[i][0] == -1)
+			stringData[i] = &cols[i][0];
 	}
+
+	srand(time(0));
 	
-	// holds unique classes
+	// get data coefficients
+	double angles[10] = { 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9 };
+	random_shuffle(angles, angles + 10);
+
+	// get angles in radians
+	for (int i = 0; i < 10; i++)
+		angles[i] = acos(angles[i]);
+
+	int last = len - 1;
+	
 	vector<string> classes;
 
 	if (c_label)
 	{
-		classes.push_back(stringData[0]);
+		classes.push_back(stringData[last][0]);
 
 		for (int i = 1; i < size; i++)
 		{
-			string temp = stringData[i];
+			string temp = stringData[last][i];
 			int count = 0;
 
 			for (int j = 0; j < classes.size(); j++)
@@ -206,82 +257,26 @@ void drawData()
 			}
 
 			if (count == classes.size())
-				classes.push_back(stringData[i]);
+				classes.push_back(stringData[last][i]);
 		}
 	}
 
-	int id_label = 0;
+	int add = 1;
+	if (c_label)
+		add = 2;
 
-	if (c_label) id_label++;
-	if (id < 0) id_label++;
-
-	if (len - id_label > 10)
-	{
-		cout << "INVALID DIMENSIONS: dimensions must be between 1-D and 10-D." << endl;
-		exit(-1);
-	}
-
-	double scale;
-
-	//scale visualization depending on number of dimensions
-	switch (len - id_label)
-	{
-		case 1:
-			scale = 50;
-			break;
-		case 2:
-			scale = 25;
-			break;
-		case 3:
-			scale = 20;
-			break;
-		case 4:
-			scale = 15;
-			break;
-		case 5:
-			scale = 13;
-			break;
-		case 6:
-			scale = 12;
-			break;
-		case 7:
-			scale = 11;
-			break;
-		case 8:
-			scale = 9.5;
-			break;
-		case 9:
-			scale = 8.75;
-			break;
-		case 10:
-			scale = 8.75;
-			break;
-		default:
-			cout << "INVALID DIMENSIONS: dimensions must be between 1-D and 10-D." << endl;
-			exit(-1);
-	}
-	
-	cout << "\nMin-Max Normalizing Data from [0, 1]." << endl;
-	cout << "\nNumber of Dimensions: " << len - id_label << "\nCoefficients Used : ";
-
-	// get data coefficients
-	double angles[11] = { 0.94, 0.53, 0.61, 0.73, 0.55, 0.91, 0.94, 0.91, 0.62, 0.93, 1};
-	
-	bool printed = false;
-	
 	// calculate x and y
 	for (int i = 0; i < size; i++)
 	{
-		double x = 1;
-		double y = 50.75;
+		double x = 50;
+		double y = 250;
 
 		int direction = 0;
 		int color;
 
-		// get color
 		if (c_label)
 		{
-			string temp = stringData[i];
+			string temp = stringData[last][i];
 
 			for (color = 0; color < classes.size(); color++)
 			{
@@ -298,7 +293,7 @@ void drawData()
 		}
 
 		if (direction == 1)
-			y -= 1.75;
+			y -= 20;
 
 		for (int j = 0; j < len; j++)
 		{
@@ -306,57 +301,23 @@ void drawData()
 				continue;
 			else
 			{
-				// print used coefficients
-				if (!printed)
-				{
-					if (c_label)
-					{
-						if (j != len - 2)
-						{
-							cout << angles[j] << ", ";
-							angles[j] = acos(angles[j]);
-						}	
-						else
-						{
-							cout << angles[j] << endl;
-							angles[j] = acos(angles[j]);
-							printed = true;
-						}
-					}	
-					else
-					{
-						if (j != len - 1)
-						{
-							cout << angles[j] << ", ";
-							angles[j] = acos(angles[j]);
-						}	
-						else
-						{
-							cout << angles[j] << endl;
-							angles[j] = acos(angles[j]);
-							printed = true;
-						}
-					}	
-				}
-				
-				double new_x = x + scale * (cos(angles[j]) * normData[j][i]);
+				double new_x = x + 3 * (cos(angles[j]) * normData[j][i]);
 				double new_y;
 				double dot;
 
 				if (direction == 0)
 				{
-					new_y = y + scale * (sin(angles[j]) * normData[j][i]);
+					new_y = y + 3 * (sin(angles[j]) * normData[j][i]);
 
-					dot = 50.25;
+					dot = 245;
 				}
 				else
 				{
-					new_y = y - scale * (sin(angles[j]) * normData[j][i]);
+					new_y = y - 3 * (sin(angles[j]) * normData[j][i]);
 
-					dot = 49.75;
+					dot = 235;
 				}
 
-				// select color
 				switch (color)
 				{
 				case 0:
@@ -391,78 +352,26 @@ void drawData()
 					break;
 				}
 					
-				// draw lines
 				glBegin(GL_LINES);
 					glVertex2d(x, y);
 					glVertex2d(new_x, new_y);
 				glEnd();
 
-				// draw points
 				glBegin(GL_POINTS);
-					if (c_label && j == len - 2)
+					if (j + add == len)
 						glVertex2d(new_x, dot);
-					else if (j == len - 1)
-						glVertex2d(new_x, dot);
-
 					glColor3f(0, 0, 0);
 					glVertex2d(new_x, new_y);
 				glEnd();
 
 				glFlush();
 
-				// get new starting points
 				x = new_x;
 				y = new_y;
 			}
 		}
 	}
 
-	cout << endl;
-
-	if (c_label)
-	{
-		cout << "Class Colors are: " << endl;
-		
-		for (int i = 0; i < classes.size(); i++)
-		{
-			switch (i)
-			{
-				case 0: 
-					cout << "\t" << classes.at(i) << " = red" << endl;
-					break;
-				case 1:
-					cout << "\t" << classes.at(i) << " = green" << endl;
-					break;
-				case 2:
-					cout << "\t" << classes.at(i) << " = blue" << endl;
-					break;
-				case 3:
-					cout << "\t" << classes.at(i) << " = yellow" << endl;
-					break;
-				case 4:
-					cout << "\t" << classes.at(i) << " = cyan" << endl;
-					break;
-				case 5:
-					cout << "\t" << classes.at(i) << " = purple" << endl;
-					break;
-				case 6:
-					cout << "\t" << classes.at(i) << " = dark red" << endl;
-					break;
-				case 7:
-					cout << "\t" << classes.at(i) << " = dark green" << endl;
-					break;
-				case 8:
-					cout << "\t" << classes.at(i) << " = dark blue" << endl;
-					break;
-				case 9:
-					cout << "\t" << classes.at(i) << " = dark yellow" << endl;
-					break;
-			}
-		}
-	}
-	else
-		cout << "No classes: all data is red." << endl;
-	
 	cout << "\nVisualization complete." << endl;
 
 	return;
