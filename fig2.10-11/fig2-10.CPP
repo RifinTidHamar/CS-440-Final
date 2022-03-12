@@ -308,46 +308,32 @@ struct rectangularPrism
         vCoord[7]= vCoord[10]= vCoord[19]= vCoord[22] = ny;
         vCoord[5]= vCoord[8]= vCoord[17]= vCoord[20] = nz;
         //std::cout << !tex;
-        if (!tex)
-        {
-            int i = 1;
-            for (int cnt = 0; cnt < 24; cnt++)
-            {
-                if (i % 3 == 0)
-                {
-                    vCol[cnt] = b;
-                }
-                else if (i % 2 == 0)
-                {
-                    vCol[cnt] = g;
-                }
-                else
-                {
-                    vCol[cnt] = r;
-                }
-                if (i == 3)
-                {
-                    i = 1;
-                }
-                else
-                    i++;
-            }
-        }
-        else
-        {
-            vTex[0] = vTex[3] = vTex[6] = vTex[9] = 0;
-            vTex[1] = vTex[4] = vTex[13] = vTex[16] = 0;
-            vTex[2] = vTex[11] = vTex[14] = vTex[23] = 0;
-            vTex[12] = vTex[15] = vTex[18] = vTex[21] = 0;
-            vTex[7] = vTex[10] = vTex[19] = vTex[22] = 0;
-            vTex[5] = vTex[8] = vTex[17] = vTex[20] = 0;
-        }
+		int i = 1;
+		for (int cnt = 0; cnt < 24; cnt++)
+		{
+			if (i % 3 == 0)
+			{
+				vCol[cnt] = b;
+			}
+			else if (i % 2 == 0)
+			{
+				vCol[cnt] = g;
+			}
+			else
+			{
+				vCol[cnt] = r;
+			}
+			if (i == 3)
+			{
+				i = 1;
+			}
+			else
+				i++;
+		}
     }
     float vCoord[24];/* = {x,y,z,   x,y,nz,   x,ny,nz,   x,ny,z,
                          nx,y,z,  nx,y,nz,  nx,ny,nz,  nx,ny,z };*/
     float vCol[24];
-
-    float vTex[24];
 };
 
 float brown[3] = { 0.5, 0.2, 0 };
@@ -357,7 +343,7 @@ rectangularPrism rectTop(0, 6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectRight(6, 0, 1, 1, 5, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectBot(0, -6, 1, 7, 1, 1.3, brown[0], brown[1], brown[2]);
 rectangularPrism rectBack(0, 0, -0.6, 7, 7, 0.3, brown[0], brown[1], brown[2]);
-const int numRects = 40;
+const int numRects = 160;
 rectangularPrism outerRectsX[numRects];
 rectangularPrism outerRectsY[numRects];
 rectangularPrism outerRectsZ[numRects];
@@ -667,7 +653,7 @@ const double PI = 3.141592654;
 
 //int animating = 0;       // Is the animation running? 0 = animating
 int ambientLight = 1;    // Should global ambient light be on?
-int viewpointLight = 1;  // Should the viewpoint light be on?
+int viewpointLight = 0;  // Should the viewpoint light be on?
 int light = 1;           // Should the red light be on?
 int showLightModel = 1;  // should the light model be showing?
 
@@ -704,7 +690,6 @@ void lights() {
         glDisable(GL_LIGHT1);
     }
 
-    //not showing
     glPushMatrix();
     glRotated(-frameNumber, 0, 1, 0);
     glTranslated(0, 10, 6);
@@ -831,8 +816,8 @@ void display() {
 
 
     radius = cameraZoom * 2.5;
-    float s1 = cameraZoom * 0.05;
-    float s2 = cameraZoom * 0.05;
+    float s1 = cameraZoom * 0.0125;
+    float s2 = cameraZoom * 0.0125;
     fillOuterRectsArrayData(s1, s2, s1, radius, 1);
     fillOuterRectsArrayData(s1, s1, s2, radius, 2);
     fillOuterRectsArrayData(s1, s1, s2, radius, 3);
@@ -983,7 +968,6 @@ void charTyped(unsigned char ch, int x, int y) {
     glutPostRedisplay();
 }
 
-
 void doMenu(int itemNum) {  // menu handler -- change render mode.
     switch (itemNum) {
     case 1: ambientLight = 1 - ambientLight; break;
@@ -995,8 +979,6 @@ void doMenu(int itemNum) {  // menu handler -- change render mode.
     }
     glutPostRedisplay();
 }
-
-
 
 void createMenus() {  // make a menu containing the five render modes.
     int menu = glutCreateMenu(doMenu);
