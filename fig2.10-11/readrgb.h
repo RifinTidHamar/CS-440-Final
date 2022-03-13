@@ -19,5 +19,4 @@
  *		RGB  -> RGB 1.0
  *		RGBA -> RGB A
  */
-unsigned* read_texture(const char* name,
-	int* width, int* height, int* components);
+unsigned* read_texture(const char* name, int* width, int* height, int* components);
