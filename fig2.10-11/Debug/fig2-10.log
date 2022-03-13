@@ -1,4 +1,4 @@
 ﻿cl : command line warning D9035: option 'Gm' has been deprecated and will be removed in a future release
   fig2-10.CPP
-fig2-10.obj : error LNK2019: unresolved external symbol "unsigned int * __cdecl read_texture(char const *,int *,int *,int *)" (?read_texture@@YAPAIPBDPAH11@Z) referenced in function "void __cdecl loadTextures(void)" (?loadTextures@@YAXXZ)
-.\Debug\fig2-10.exe : fatal error LNK1120: 1 unresolved externals
+C:\Users\infer\Desktop\CS 440\Github2\CS-440-Final\fig2.10-11\fig2-10.CPP(125,24): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  fig2-10.vcxproj -> C:\Users\infer\Desktop\CS 440\Github2\CS-440-Final\fig2.10-11\Debug\fig2-10.exe
