@@ -8,276 +8,6 @@
 #include <iostream>
 #include "readrgb.h"
 
-//for image things
-void bwtorgba(unsigned char* b, unsigned char* l, int n)
-{
-    while (n--) {
-        l[0] = *b;
-        l[1] = *b;
-        l[2] = *b;
-        l[3] = 0xff;
-        l += 4; b++;
-    }
-}
-
-void latorgba(unsigned char* b, unsigned char* a, unsigned char* l, int n)
-{
-    while (n--) {
-        l[0] = *b;
-        l[1] = *b;
-        l[2] = *b;
-        l[3] = *a;
-        l += 4; b++; a++;
-    }
-}
-
-void rgbtorgba(unsigned char* r, unsigned char* g,
-    unsigned char* b, unsigned char* l, int n)
-{
-    while (n--) {
-        l[0] = r[0];
-        l[1] = g[0];
-        l[2] = b[0];
-        l[3] = 0xff;
-        l += 4; r++; g++; b++;
-    }
-}
-
-void rgbatorgba(unsigned char* r, unsigned char* g,
-    unsigned char* b, unsigned char* a, unsigned char* l, int n)
-{
-    while (n--) {
-        l[0] = r[0];
-        l[1] = g[0];
-        l[2] = b[0];
-        l[3] = a[0];
-        l += 4; r++; g++; b++; a++;
-    }
-}
-
-typedef struct _ImageRec {
-    unsigned short imagic;
-    unsigned short type;
-    unsigned short dim;
-    unsigned short xsize, ysize, zsize;
-    unsigned int min, max;
-    unsigned int wasteBytes;
-    char name[80];
-    unsigned long colorMap;
-    FILE* file;
-    unsigned char* tmp, * tmpR, * tmpG, * tmpB;
-    unsigned long rleEnd;
-    unsigned int* rowStart;
-    int* rowSize;
-} ImageRec;
-
-static void ConvertShort(unsigned short* array, long length)
-{
-    unsigned b1, b2;
-    unsigned char* ptr;
-
-    ptr = (unsigned char*)array;
-    while (length--) {
-        b1 = *ptr++;
-        b2 = *ptr++;
-        *array++ = (b1 << 8) | (b2);
-    }
-}
-
-static void ConvertLong(unsigned* array, long length)
-{
-    unsigned b1, b2, b3, b4;
-    unsigned char* ptr;
-
-    ptr = (unsigned char*)array;
-    while (length--) {
-        b1 = *ptr++;
-        b2 = *ptr++;
-        b3 = *ptr++;
-        b4 = *ptr++;
-        *array++ = (b1 << 24) | (b2 << 16) | (b3 << 8) | (b4);
-    }
-}
-
-static ImageRec* ImageOpen(const char* fileName)
-{
-    union {
-        int testWord;
-        char testByte[4];
-    } endianTest;
-    ImageRec* image;
-    int swapFlag;
-    int x;
-
-    endianTest.testWord = 1;
-    if (endianTest.testByte[0] == 1) {
-        swapFlag = 1;
-    }
-    else {
-        swapFlag = 0;
-    }
-
-    image = (ImageRec*)malloc(sizeof(ImageRec));
-    if (image == NULL) {
-        fprintf(stderr, "Out of memory!\n");
-        exit(1);
-    }
-    if ((image->file = fopen(fileName, "rb")) == NULL) {
-        perror(fileName);
-        exit(1);
-    }
-
-    fread(image, 1, 12, image->file);
-
-    if (swapFlag) {
-        ConvertShort(&image->imagic, 6);
-    }
-
-    image->tmp = (unsigned char*)malloc(image->xsize * 256);
-    image->tmpR = (unsigned char*)malloc(image->xsize * 256);
-    image->tmpG = (unsigned char*)malloc(image->xsize * 256);
-    image->tmpB = (unsigned char*)malloc(image->xsize * 256);
-    if (image->tmp == NULL || image->tmpR == NULL || image->tmpG == NULL ||
-        image->tmpB == NULL) {
-        fprintf(stderr, "Out of memory!\n");
-        exit(1);
-    }
-
-    if ((image->type & 0xFF00) == 0x0100) {
-        x = image->ysize * image->zsize * sizeof(unsigned);
-        image->rowStart = (unsigned*)malloc(x);
-        image->rowSize = (int*)malloc(x);
-        if (image->rowStart == NULL || image->rowSize == NULL) {
-            fprintf(stderr, "Out of memory!\n");
-            exit(1);
-        }
-        image->rleEnd = 512 + (2 * x);
-        fseek(image->file, 512, SEEK_SET);
-        fread(image->rowStart, 1, x, image->file);
-        fread(image->rowSize, 1, x, image->file);
-        if (swapFlag) {
-            ConvertLong(image->rowStart, x / (int)sizeof(unsigned));
-            ConvertLong((unsigned*)image->rowSize, x / (int)sizeof(int));
-        }
-    }
-    else {
-        image->rowStart = NULL;
-        image->rowSize = NULL;
-    }
-    return image;
-}
-
-static void ImageClose(ImageRec* image)
-{
-    fclose(image->file);
-    free(image->tmp);
-    free(image->tmpR);
-    free(image->tmpG);
-    free(image->tmpB);
-    free(image->rowSize);
-    free(image->rowStart);
-    free(image);
-}
-
-static void ImageGetRow(ImageRec* image,
-    unsigned char* buf, int y, int z)
-{
-    unsigned char* iPtr, * oPtr, pixel;
-    int count;
-
-    if ((image->type & 0xFF00) == 0x0100) {
-        fseek(image->file, (long)image->rowStart[y + z * image->ysize], SEEK_SET);
-        fread(image->tmp, 1, (unsigned int)image->rowSize[y + z * image->ysize],
-            image->file);
-
-        iPtr = image->tmp;
-        oPtr = buf;
-        for (;;) {
-            pixel = *iPtr++;
-            count = (int)(pixel & 0x7F);
-            if (!count) {
-                return;
-            }
-            if (pixel & 0x80) {
-                while (count--) {
-                    *oPtr++ = *iPtr++;
-                }
-            }
-            else {
-                pixel = *iPtr++;
-                while (count--) {
-                    *oPtr++ = pixel;
-                }
-            }
-        }
-    }
-    else {
-        fseek(image->file, 512 + (y * image->xsize) + (z * image->xsize * image->ysize),
-            SEEK_SET);
-        fread(buf, 1, image->xsize, image->file);
-    }
-}
-
-unsigned* read_texture(char* name,
-    int* width, int* height, int* components)
-{
-    unsigned* base, * lptr;
-    unsigned char* rbuf, * gbuf, * bbuf, * abuf;
-    ImageRec* image;
-    int y;
-
-    image = ImageOpen(name);
-
-    if (!image)
-        return NULL;
-    (*width) = image->xsize;
-    (*height) = image->ysize;
-    (*components) = image->zsize;
-    base = (unsigned*)malloc(image->xsize * image->ysize * sizeof(unsigned));
-    rbuf = (unsigned char*)malloc(image->xsize * sizeof(unsigned char));
-    gbuf = (unsigned char*)malloc(image->xsize * sizeof(unsigned char));
-    bbuf = (unsigned char*)malloc(image->xsize * sizeof(unsigned char));
-    abuf = (unsigned char*)malloc(image->xsize * sizeof(unsigned char));
-    if (!base || !rbuf || !gbuf || !bbuf)
-        return NULL;
-    lptr = base;
-    for (y = 0; y < image->ysize; y++) {
-        if (image->zsize >= 4) {
-            ImageGetRow(image, rbuf, y, 0);
-            ImageGetRow(image, gbuf, y, 1);
-            ImageGetRow(image, bbuf, y, 2);
-            ImageGetRow(image, abuf, y, 3);
-            rgbatorgba(rbuf, gbuf, bbuf, abuf, (unsigned char*)lptr, image->xsize);
-            lptr += image->xsize;
-        }
-        else if (image->zsize == 3) {
-            ImageGetRow(image, rbuf, y, 0);
-            ImageGetRow(image, gbuf, y, 1);
-            ImageGetRow(image, bbuf, y, 2);
-            rgbtorgba(rbuf, gbuf, bbuf, (unsigned char*)lptr, image->xsize);
-            lptr += image->xsize;
-        }
-        else if (image->zsize == 2) {
-            ImageGetRow(image, rbuf, y, 0);
-            ImageGetRow(image, abuf, y, 1);
-            latorgba(rbuf, abuf, (unsigned char*)lptr, image->xsize);
-            lptr += image->xsize;
-        }
-        else {
-            ImageGetRow(image, rbuf, y, 0);
-            bwtorgba(rbuf, (unsigned char*)lptr, image->xsize);
-            lptr += image->xsize;
-        }
-    }
-    ImageClose(image);
-    free(rbuf);
-    free(gbuf);
-    free(bbuf);
-    free(abuf);
-
-    return (unsigned*)base;
-}
-/// ////////////////////////////end of image things////////////////////////////////////////////////////////////
 static double eyex = 0, eyey = 0, eyez = 30;
 static double refx = 0, refy = 0, refz = 0;
 static double upx = 0, upy = 1, upz = 0;
@@ -289,7 +19,7 @@ static int orthographic = 0;
 static int preserveAspect = 1;
 
 static double xminActual, xmaxActual, yminActual, ymaxActual;
-
+//extern "C" int subMain(unsigned char* ip);
 
 struct rectangularPrism
 {
@@ -307,8 +37,8 @@ struct rectangularPrism
         vCoord[12]= vCoord[15]= vCoord[18]= vCoord[21] = nx;
         vCoord[7]= vCoord[10]= vCoord[19]= vCoord[22] = ny;
         vCoord[5]= vCoord[8]= vCoord[17]= vCoord[20] = nz;
-        //std::cout << !tex;
-		int i = 1;
+
+        int i = 1;
 		for (int cnt = 0; cnt < 24; cnt++)
 		{
 			if (i % 3 == 0)
@@ -415,6 +145,7 @@ void square(double side, float z, float s) {
     glVertex3d(-radius - s, radius, z);//bottomRight
     glEnd();
 } // end square
+
 void cube(double side, float z, float sz) {
     glPushMatrix();
     glRotatef(90, 1, 0, 0);  //bottomFace
@@ -451,7 +182,7 @@ void cube(double side, float z, float sz) {
     glPopMatrix();
     glPopMatrix();
 }
-// wall of untouched code begins here**************************************
+
 void cameraSetOrthographic(int ortho) {
     orthographic = ortho;
 }
@@ -701,7 +432,6 @@ void lights() {
     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, zero); // Turn off emission color!
 } // end lights()
 
-
 /*  Fills the array with RGBA color components corresponding the given HSV color
  *  components, where h, s, and v are in the range 0.0 to 1.0.
  */
@@ -727,7 +457,6 @@ void colorArrayForHue(double array[4], double h, double s, double v) {
     array[3] = 1;
 }
 
-
 // wall of untouched code ends here***************************************
 const int textNum = 2;
 GLuint texID[textNum];  // Texture ID's for the three textures.
@@ -736,7 +465,6 @@ char* textureFileNames[textNum] = {   // file names for the files from which tex
             "textures-rgb/castle.rgb", 
             "textures-rgb/woodGrain.rgb"
 };
-
 
 // rotations for special key function
 float rotateY = 0;     
@@ -764,13 +492,7 @@ void specialKeyFunction(int key, int x, int y) {
     glutPostRedisplay();
 }
 
-/* Draws the scene
- */
-
 void display() {
-
-   
-
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -779,10 +501,8 @@ void display() {
     cameraApply();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-   
     glPushMatrix();
-  
-   
+
     lights();
 
     float zero[] = { 0, 0, 0, 1 };
@@ -813,7 +533,6 @@ void display() {
     drawRectangularPrism(rectBot);
     drawRectangularPrism(rectBack);*/
     //glDisable(GL_TEXTURE_2D);
-
 
     radius = cameraZoom * 2.5;
     float s1 = cameraZoom * 0.0125;
@@ -862,13 +581,8 @@ void display() {
 
     glPopMatrix();
     glutSwapBuffers();
-
-
 }
 
-/* Called when the window size changes; just record the new size for use in
- * setting the viewports in the display method.
- */
 void reshape(int w, int h) {
     width = w;
     height = h;
@@ -929,7 +643,6 @@ void initGL() {
     glLightfv(GL_LIGHT1, GL_SPECULAR, light);
 }
 
-
 // --------------- support for animation ------------------------------------------
 
 /*
@@ -973,8 +686,8 @@ void doMenu(int itemNum) {  // menu handler -- change render mode.
     case 1: ambientLight = 1 - ambientLight; break;
     case 2: viewpointLight = 1 - viewpointLight; break;
     case 3: light = 1 - light; break;
-    case 5: if (cameraZoom < 100) cameraZoom += 10; break;
-    case 4: if (cameraZoom > 10) cameraZoom -= 10; break;
+    case 5: if (cameraZoom < 100) cameraZoom += 1; break;
+    case 4: if (cameraZoom > 1) cameraZoom -= 1; break;
     case 6: exit(0);
     }
     glutPostRedisplay();
@@ -995,7 +708,8 @@ void createMenus() {  // make a menu containing the five render modes.
 
 //---------------------------------------------------------------------------
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) 
+{
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(600, 660);
